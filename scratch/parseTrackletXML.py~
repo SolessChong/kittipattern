@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 """
-Edit by SolessChong
-
-Added "objectType" in tracklet __iter__
-"""
-"""
 parse XML files containing tracklet info for kitti data base (raw data section)
 (http://cvlibs.net/datasets/kitti/raw_data.php)
 
@@ -87,10 +82,10 @@ class Tracklet(object):
     trackDataIter = iter(trackletObj)
     """
     if self.amtOccs is None:
-      return itertools.izip(self.objectType, self.trans, self.rots, self.states, self.occs, self.truncs, \
+      return itertools.izip(self.trans, self.rots, self.states, self.occs, self.truncs, \
           itertools.repeat(None), itertools.repeat(None), xrange(self.firstFrame, self.firstFrame+self.nFrames))
     else:
-      return itertools.izip(self.objectType, self.trans, self.rots, self.states, self.occs, self.truncs, \
+      return itertools.izip(self.trans, self.rots, self.states, self.occs, self.truncs, \
           self.amtOccs, self.amtBorders, xrange(self.firstFrame, self.firstFrame+self.nFrames))
 #end: class Tracklet
 
