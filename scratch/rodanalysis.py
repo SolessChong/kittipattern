@@ -111,8 +111,8 @@ def get_PDF_from_rods(rods, T1, T2, intDraw=2):
     ymin = ys.min()
     ymax = ys.max()
 
-    px = np.linspace(xmin, xmax, 100)
-    py = np.linspace(ymin, ymax, 100)
+    px = np.linspace(xmin, xmax, 30)
+    py = np.linspace(ymin, ymax, 30)
     mx, my = np.meshgrid(px, py)
 
     z = np.array([pdf([x,y]) for x,y in zip(np.ravel(mx), np.ravel(my))])
@@ -127,7 +127,7 @@ def get_PDF_from_rods(rods, T1, T2, intDraw=2):
       plt.show()
     if intDraw == 1:
       fig_filename = 'pdf/last_pdf_' + T1 + '--' + T2 + '.jpg'
-      savefig(fig_filename)
+      plt.savefig(fig_filename)
 
   return pdf
 
