@@ -8,11 +8,11 @@ Rod
 ---
 Rod is the relative position between a specified pair of objects.
 
-Rod: {T1, T2, l(x,y,z)}
+Rod: {T1, T2, vec}
 
 T1:	type of obj1, string
 T2:	type of obj2, string
-l:	vector from obj1 to obj2, array[float]
+vec:	vector describing the relative position of obj1 and obj2, array[float]
 
 Frame
 -----
