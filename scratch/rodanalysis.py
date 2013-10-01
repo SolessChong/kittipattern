@@ -76,7 +76,7 @@ def get_rods_from_frames(frames):
 
   return rods
 
-def get_PDF_from_rods(rods, T1, T2):  
+def get_PDF_from_rods(rods, T1, T2, bDraw=True):  
 
   """
   Estimate the probability distribution function of the vector
@@ -95,29 +95,30 @@ def get_PDF_from_rods(rods, T1, T2):
   pdf = stats.gaussian_kde(points)
 
   # save PDF function generated during this run
-  PDF_filename = 'last_pdf' + T1 + '--' + T2 + '.pk'
+  PDF_filename = 'pdf/last_pdf_' + T1 + '--' + T2 + '.pk'
   with open(PDF_filename, 'wb') as output:
     pickle.dump(pdf, output, pickle.HIGHEST_PROTOCOL)
 
-  # draw function and plot
-  xmin = xs.min()
-  xmax = xs.max()
-  ymin = ys.min()
-  ymax = ys.max()
+  if bDraw:
+    # draw function and plot
+    xmin = xs.min()
+    xmax = xs.max()
+    ymin = ys.min()
+    ymax = ys.max()
 
-  px = np.linspace(xmin, xmax, 100)
-  py = np.linspace(ymin, ymax, 100)
-  mx, my = np.meshgrid(px, py)
+    px = np.linspace(xmin, xmax, 100)
+    py = np.linspace(ymin, ymax, 100)
+    mx, my = np.meshgrid(px, py)
 
-  z = np.array([pdf([x,y]) for x,y in zip(np.ravel(mx), np.ravel(my))])
-  Z = np.reshape(z, mx.shape)
+    z = np.array([pdf([x,y]) for x,y in zip(np.ravel(mx), np.ravel(my))])
+    Z = np.reshape(z, mx.shape)
 
-  ## used when "surface plot"
-  # fig = plt.figure()
-  # ax = fig.add_subplot(111, projection='3d')
+    ## used when "surface plot"
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
 
-  plt.pcolormesh(mx,my,Z, cmap=plt.get_cmap('YlOrRd'))
-  plt.show()
+    plt.pcolormesh(mx,my,Z, cmap=plt.get_cmap('YlOrRd'))
+    plt.show()
 
   return pdf
 
@@ -125,6 +126,7 @@ def get_all_possible_types(all_frames):
   """
   Get all possible types occured in frames
   """
+  types = []
   for frames in all_frames:
     for frame in frames.itervalues():
       for obj in frame:
@@ -137,6 +139,7 @@ def get_all_possible_types(all_frames):
 if __name__ == "__main__":
   #frames = read_frames_from_file('../data/tracklet_labels_0001.xml')
   dir_name = '../data/part'
+
   all_rods = get_rods_from_directory('../data/part')
   pdf = get_PDF_from_rods(all_rods, '', '')
   
