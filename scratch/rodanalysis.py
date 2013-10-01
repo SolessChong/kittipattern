@@ -76,7 +76,7 @@ def get_rods_from_frames(frames):
 
   return rods
 
-def get_PDF_from_rods(rods, T1, T2, bDraw=True):  
+def get_PDF_from_rods(rods, T1, T2, intDraw=2):  
 
   """
   Estimate the probability distribution function of the vector
@@ -87,6 +87,11 @@ def get_PDF_from_rods(rods, T1, T2, bDraw=True):
     1) when filtering, they are used by substring containing operation
     2) used in generating filename of the file containing the PDF function
 
+  Parameters:
+    intDraw:
+        0: no show
+        1: save to image
+        2: plt.show
   """
   rods_filtered = [r for r in rods if r.T1 in T1 and r.T2 in T2]
   xs = np.array([r.vec[0] for r in rods])
@@ -99,7 +104,7 @@ def get_PDF_from_rods(rods, T1, T2, bDraw=True):
   with open(PDF_filename, 'wb') as output:
     pickle.dump(pdf, output, pickle.HIGHEST_PROTOCOL)
 
-  if bDraw:
+  if intDraw > 0:
     # draw function and plot
     xmin = xs.min()
     xmax = xs.max()
@@ -118,7 +123,11 @@ def get_PDF_from_rods(rods, T1, T2, bDraw=True):
     # ax = fig.add_subplot(111, projection='3d')
 
     plt.pcolormesh(mx,my,Z, cmap=plt.get_cmap('YlOrRd'))
-    plt.show()
+    if intDraw == 2:
+      plt.show()
+    if intDraw == 1:
+      fig_filename = 'pdf/last_pdf_' + T1 + '--' + T2 + '.jpg'
+      savefig(fig_filename)
 
   return pdf
 

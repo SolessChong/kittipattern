@@ -20,4 +20,4 @@ types = get_all_possible_types(all_frames)
 
 for T1 in types:
 	for T2 in types:
-		get_PDF_from_rods(all_rods, T1, T2, False)
+		get_PDF_from_rods(all_rods, T1, T2, 1)
