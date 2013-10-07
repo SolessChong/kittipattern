@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../utilities')
 from parseTrackletXML import *
 import os
 
@@ -6,13 +8,15 @@ def read_frames_from_file(file_name):
   """
   Read the file and re-arrange them in frames
   Specify by individual file
+  Interpolate the translations to get velocity
   """
   tracklets = parseXML(file_name)
 
+
   frames = {}
   for trackletObj in tracklets:
-  	for translation, rotation, state, occlusion, truncation, amtOcclusion, amtBorders,absoluteFrameNumber in trackletObj:
-  		obj = {'type': trackletObj.objectType, 'l':translation}
+  	for translation, rotation, state, occlusion, truncation, amtOcclusion, amtBorders, absoluteFrameNumber, velo in trackletObj:
+  		obj = {'type': trackletObj.objectType, 'l':translation, 'v': velo}
   		if not frames.has_key(absoluteFrameNumber):
   			frames[absoluteFrameNumber] = []
   		frames[absoluteFrameNumber].append(obj)

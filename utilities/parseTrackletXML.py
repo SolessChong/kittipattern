@@ -37,7 +37,7 @@ class Tracklet(object):
     #end: for all frames
   #end: for all tracklets
 
-  absoluteFrameNumber is in range [firstFrame, firstFrame+nFrames[
+  absoluteFrameNumber is in range [firstFrame, firstFrame+nFrames]
   amtOcclusion and amtBorders could be None
 
   You can of course also directly access the fields objType (string), size (len-3 ndarray), firstFrame/nFrames (int), 
@@ -81,12 +81,16 @@ class Tracklet(object):
     or
     trackDataIter = iter(trackletObj)
     """
+
+    #
+    # Extended: Added velocity
+    #
     if self.amtOccs is None:
       return itertools.izip(self.trans, self.rots, self.states, self.occs, self.truncs, \
-          itertools.repeat(None), itertools.repeat(None), xrange(self.firstFrame, self.firstFrame+self.nFrames))
+          itertools.repeat(None), itertools.repeat(None), xrange(self.firstFrame, self.firstFrame+self.nFrames)), self.velos
     else:
       return itertools.izip(self.trans, self.rots, self.states, self.occs, self.truncs, \
-          self.amtOccs, self.amtBorders, xrange(self.firstFrame, self.firstFrame+self.nFrames))
+          self.amtOccs, self.amtBorders, xrange(self.firstFrame, self.firstFrame+self.nFrames)), self.velos
 #end: class Tracklet
 
 
@@ -213,6 +217,15 @@ def parseXML(trackletFile):
     else:
       raise ValueError('unexpected tracklet info')
   #end: for tracklet list items
+
+  #
+  # Extended: Added velocity
+  #
+  for tracklet in tracklets:
+    diff = np.diff(zip(*tracklet.trans))[0:2]
+    velos = np.concatenate((np.array([[0],[0]]),diff), axis=1)
+
+    tracklet.velos = zip(*velos)
 
   return tracklets
 #end: function parseXML

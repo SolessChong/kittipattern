@@ -17,5 +17,5 @@ vec:	vector describing the relative position of obj1 and obj2, array[float]
 Frame
 -----
 List of objs
-obj: {type, position(x,y,z)}
+obj: {'type': type, 'l': position(x,y,z), 'v': velocity(vx, vy)}
 
