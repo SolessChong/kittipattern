@@ -94,8 +94,12 @@ def get_PDF_from_rods(rods, T1, T2, intDraw=2):
         2: plt.show
   """
   rods_filtered = [r for r in rods if r.T1 in T1 and r.T2 in T2]
-  xs = np.array([r.vec[0] for r in rods])
-  ys = np.array([r.vec[1] for r in rods])
+  if len(rods_filtered) < 10:
+    print "No such pair occured or too few samples"
+    print "T1 = " + T1 + ", T2 = " + T2
+    return None
+  xs = np.array([r.vec[0] for r in rods_filtered])
+  ys = np.array([r.vec[1] for r in rods_filtered])
   points = np.vstack([xs, ys])
   pdf = stats.gaussian_kde(points)
 
@@ -104,6 +108,7 @@ def get_PDF_from_rods(rods, T1, T2, intDraw=2):
   with open(PDF_filename, 'wb') as output:
     pickle.dump(pdf, output, pickle.HIGHEST_PROTOCOL)
 
+  plt.clf();
   if intDraw > 0:
     # draw function and plot
     xmin = xs.min()

@@ -9,8 +9,6 @@ pdf = get_PDF_from_rods(rods, 'Car', 'Pedestrain')
 
 ### Part II ###
 ### Get types
-types = []
-
 dir_name = '../data/part'
 
 all_frames = read_allframes_from_directory(dir_name)
