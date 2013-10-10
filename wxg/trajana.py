@@ -40,7 +40,7 @@ class Node(object):
 
 	def __init__(self, pos, v):
 		self.pos = pos[0:2]
-		self.v = v
+		self.v = np.array(v)
 
 	def spatial_dist_to(self, x):
 		"""
@@ -59,12 +59,9 @@ class Node(object):
 
 		This is the function `d` in Wang[06]
 		"""
-		# Feature vector
-		fv1 = self.v
-		fv2 = x.v
-		cos_sim = np.dot(fv1, fv2) / np.sqrt(np.dot(fv1,fv1) * np.dot(fv2, fv2))
+		dist = 3 * np.sqrt(np.dot(self.v - x.v, self.v - x.v))
 
-		return 1 - cos_sim
+		return dist
 
 	def dist_to(self, x):
 		return self.spatial_dist_to(x) + pLambda * self.feature_dist_to(x)
@@ -73,8 +70,7 @@ class Node(object):
 		return np.exp(-self.dist_to(x)/pSigma)
 
 	def comparison_confidence(self, x):
-		return np.exp(self.spatial_dist_to(x)/pSigma1)
-
+		return np.exp(-self.spatial_dist_to(x)/pSigma1)
 
 	def to_string(self):
 		rst = 'x=%d, y=%d' % (self.x, self.y)
@@ -126,7 +122,7 @@ class Trajectory(object):
 		cons = []	# confidences
 		for i in range(len(self.nodes)):
 			nodeA = self.nodes[i]
-			nodeB = self.nodes[self.nearest_node_to(nodeA)]
+			nodeB = trajectory.nodes[trajectory.nearest_node_to(nodeA)]
 			sims.append(nodeA.similarity_to(nodeB))
 			cons.append(nodeA.comparison_confidence(nodeB))
 
@@ -141,7 +137,7 @@ class Trajectory(object):
 		cons = []	# confidences
 		for i in range(len(self.nodes)):
 			nodeA = self.nodes[i]
-			nodeB = self.nodes[self.nearest_node_to(nodeA)]
+			nodeB = trajectory.nodes[trajectory.nearest_node_to(nodeA)]
 			cons.append(nodeA.comparison_confidence(nodeB))
 
 		return np.dot(cons, cons) / np.sum(cons)
@@ -166,4 +162,30 @@ class AnalysisEngine(object):
 	Analysis Engine, contains utilities that analysis trajectory corpus
 	"""
 
-	pass
+	def calculate_all(self, trajectories):
+		"""
+		Calculate all similarity and confidence of each pair
+		of trajectories.
+
+		Parameters:
+			trajectories: list of trajectories
+		"""
+		n = len(trajectories)
+		self.s = np.zeros((n,n))
+		self.c = np.zeros((n,n))
+		for i in range(n):
+			for j in range(n):
+				self.s[i,j] = trajectories[i].similarity_to(trajectories[j])
+				self.c[i,j] = trajectories[i].comparison_confidence(trajectories[j])
+				# Make symetry by taking max confidence
+				if i > j:
+					if self.c[j,i] > self.c[i,j]:
+						self.c[i,j] = self.c[j,i]
+						self.s[i,j] = self.s[j,i]
+					else:
+						self.c[j,i] = self.c[i,j]
+						self.s[j,i] = self.s[i,j]
+
+	def trajectory_pair_weight(self, traj1, traj2):
+		s = traj1.similarity_to(traj2)
+		c = traj1.similarity_to(traj2)
