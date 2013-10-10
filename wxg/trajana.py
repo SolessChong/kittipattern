@@ -2,7 +2,7 @@ import sys
 sys.path.append('../utilities')
 from frames import *
 from parseTrackletXML import *
-from scipy import stats
+from scipy import stats, signal
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import re
@@ -17,6 +17,20 @@ Xiaogang Wang [06]
 `Learning Semantic Scene Models by Trajectory Analysis`, ECCV
 """
 
+"""
+To Do:
+
+Change Node.feature_dist_to().
+	Currently it ranges in [0,2]
+
+"""
+
+# parameters: Lambda, ratio of feature distance and spatial distance
+pLambda = 1
+# parameters: Sigma, gaussian parameter for converting node distance to similarity
+pSigma = 1
+# parameters: Sigma 1, gaussian parameter for comparison confidence
+pSigma1 = 1
 
 class Node(object):
 	"""
@@ -41,28 +55,30 @@ class Node(object):
 	def feature_dist_to(self, x):
 		"""
 		Feature distance to another node
+		We use cosine similarity for this.
 
 		This is the function `d` in Wang[06]
 		"""
+		# Feature vector
+		fv1 = self.v
+		fv2 = x.v
+		cos_sim = np.dot(fv1, fv2) / np.sqrt(np.dot(fv1,fv1) * np.dot(fv2, fv2))
 
-		return 0
+		return 1 - cos_sim
 
 	def dist_to(self, x):
-		return self.spatial_dist_to(x) + 1 * self.feature_dist_to(x)
+		return self.spatial_dist_to(x) + pLambda * self.feature_dist_to(x)
+
+	def similarity_to(self, x):
+		return np.exp(-self.dist_to(x)/pSigma)
+
+	def comparison_confidence(self, x):
+		return np.exp(self.spatial_dist_to(x)/pSigma1)
+
 
 	def to_string(self):
 		rst = 'x=%d, y=%d' % (self.x, self.y)
 		return rst
-
-	def nearest_node_in(self, trajectory):
-		"""
-		Finds the index of the node in a trajectory that is
-		nearest to this node
-
-		This is the `phi` function in Wang[06]
-		"""
-		dists = [self.dist_to(node) for node in trajectory.nodes]
-		return np.argmin(dists)
 
 # end class Node
 
@@ -81,6 +97,55 @@ class Trajectory(object):
 		self.firstFrame = tracklet.firstFrame
 		self.nFrames = tracklet.nFrames
 
+	def nearest_node_to(self, node):
+		dists = [node.spatial_dist_to(n) for n in self.nodes]
+
+		return np.argmin(dists)
+
+	# Similarity Version I
+	# def dist_to(self, trajectory):
+	# 	"""
+	# 	Returns the distance between 'self' and 'x'
+	# 	"""
+	# 	dists = []
+	# 	for i in range(len(self.nodes)):
+	# 		nodeA = self.nodes[i]
+	# 		nodeB = trajectory.nearest_node_to(nodeA)
+	# 		dists.append(nodeA.dist_to(nodeB))
+
+	# 	return np.average(dists)
+
+	# Similarity Version II
+	def similarity_to(self, trajectory):
+		"""
+		Trajectory similarity to
+
+		This is the function S_A_B in Wang[06]
+		"""
+		sims = []	# similarities
+		cons = []	# confidences
+		for i in range(len(self.nodes)):
+			nodeA = self.nodes[i]
+			nodeB = self.nodes[self.nearest_node_to(nodeA)]
+			sims.append(nodeA.similarity_to(nodeB))
+			cons.append(nodeA.comparison_confidence(nodeB))
+
+		return np.dot(sims, cons) / np.sum(cons)
+
+	def comparison_confidence(self, trajectory):
+		"""
+		Trajectory comparison confidence to
+
+		This is the function C_A_B in Wang[06]
+		"""
+		cons = []	# confidences
+		for i in range(len(self.nodes)):
+			nodeA = self.nodes[i]
+			nodeB = self.nodes[self.nearest_node_to(nodeA)]
+			cons.append(nodeA.comparison_confidence(nodeB))
+
+		return np.dot(cons, cons) / np.sum(cons)
+
 	def dist_to(self, trajectory):
 		"""
 		Returns the distance between 'self' and 'x'
@@ -89,7 +154,7 @@ class Trajectory(object):
 		for i in range(len(self.nodes)):
 			nodeA = self.nodes[i]
 			nodeB = nodeA.nearest_node_in(trajectory)
-			dists.append(nodeA.dist_to(nodeB)
+			dists.append(nodeA.dist_to(nodeB))
 
 		return np.average(dists)
 
